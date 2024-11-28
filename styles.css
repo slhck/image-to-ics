@@ -1,0 +1,238 @@
+/* CSS Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Base styles */
+body {
+  color: #f3f4f6;
+  background-color: #111827;
+  min-height: 100vh;
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.container {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Typography */
+h1 {
+  font-size: 1.875rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #f3f4f6;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* Common components */
+.card {
+  background-color: #1f2937;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 1rem;
+}
+
+.button-blue {
+  background-color: #2563eb;
+}
+
+.button-blue:hover {
+  background-color: #1d4ed8;
+}
+
+.button-green {
+  background-color: #059669;
+}
+
+.button-green:hover {
+  background-color: #047857;
+}
+
+.button-red {
+  background-color: #dc2626;
+}
+
+.button-red:hover {
+  background-color: #b91c1c;
+}
+
+.button-gray {
+  background-color: #4b5563;
+}
+
+.button-gray:hover {
+  background-color: #374151;
+}
+
+/* Form elements */
+.input {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #4b5563;
+  background-color: #374151;
+  color: #f3f4f6;
+  width: 100%;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+/* Layout utilities */
+.flex {
+  display: flex;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Helper text */
+.helper-text {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+}
+
+.success-text {
+  color: #34d399;
+}
+
+/* Dropzone styling */
+.dropzone {
+  background-color: #1f2937 !important;
+  border: 2px dashed #4b5563 !important;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+  color: #d1d5db;
+  cursor: pointer;
+}
+
+.dropzone:hover {
+  border-color: #6b7280 !important;
+}
+
+.dropzone .dz-preview {
+  background: transparent !important;
+}
+
+.dropzone .dz-preview .dz-image {
+  border-radius: 0.5rem;
+  background: #374151 !important;
+}
+
+.dropzone .dz-preview.dz-image-preview {
+  background: transparent !important;
+}
+
+.dropzone .dz-preview .dz-details {
+  color: #d1d5db !important;
+}
+
+.dropzone .dz-preview .dz-progress {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dropzone .dz-preview .dz-progress .dz-upload {
+  background: #2563eb !important;
+}
+
+.dropzone .dz-preview .dz-error-message {
+  background: #7f1d1d !important;
+  color: #fecaca !important;
+}
+
+.dropzone .dz-preview .dz-success-mark,
+.dropzone .dz-preview .dz-error-mark {
+  background: transparent !important;
+}
+
+.dropzone .dz-preview .dz-success-mark svg,
+.dropzone .dz-preview .dz-error-mark svg {
+  background: #1f2937 !important;
+  border-radius: 0.5rem;
+}
+
+.dropzone .dz-preview .dz-success-mark svg path {
+  fill: #34d399 !important;
+}
+
+.dropzone .dz-preview .dz-error-mark svg path {
+  fill: #dc2626 !important;
+}
+
+/* Loading indicator */
+.spinner {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #d1d5db;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error message */
+.error-message {
+  background-color: #7f1d1d;
+  border: 1px solid #991b1b;
+  color: #fecaca;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Utility classes */
+.hidden {
+  display: none;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+

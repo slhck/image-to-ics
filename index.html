@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Image to ICS Converter</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css" />
     <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
     <link
       rel="stylesheet"
@@ -12,41 +12,33 @@
       type="text/css"
     />
   </head>
-  <body class="bg-gray-900 min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 class="text-3xl font-bold text-center mb-8 text-gray-100">
-        Image to ICS Converter
-      </h1>
+  <body>
+    <div class="container">
+      <h1>Image to ICS Converter</h1>
 
       <!-- API Key Section -->
-      <div class="mb-8 bg-gray-800 p-6 rounded-lg shadow-md">
+      <div class="card">
         <div id="apiKeyEntry" class="flex gap-4">
           <div>
             <input
               type="password"
               id="apiKey"
               placeholder="Enter your OpenAI API Key"
-              class="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 text-gray-100 border-gray-600"
+              class="input"
             />
-            <p class="mt-2 text-sm text-gray-400">
+            <p class="helper-text">
               Your API key is stored locally and never sent to any server except
               OpenAI.
-          </p>
+            </p>
           </div>
-          <button
-            onclick="setApiKey()"
-            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-          >
+          <button onclick="setApiKey()" class="button button-blue">
             Set API Key
           </button>
         </div>
         <div id="apiKeySet" class="hidden">
-          <div class="flex gap-4 items-center">
-            <span class="flex-1 text-green-400">✓ OpenAI API Key is set</span>
-            <button
-              onclick="clearApiKey()"
-              class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
-            >
+          <div class="flex justify-between items-center">
+            <span class="success-text">✓ OpenAI API Key is set</span>
+            <button onclick="clearApiKey()" class="button button-red">
               Clear API Key
             </button>
           </div>
@@ -54,59 +46,40 @@
       </div>
 
       <!-- Dropzone -->
-      <div class="mb-8">
-        <form id="imageUpload" class="dropzone bg-gray-800 rounded-lg shadow-md">
-          <div class="dz-message text-gray-300">Drop your image here or click to upload</div>
+      <div class="mb-4">
+        <form id="imageUpload" class="dropzone">
+          <div class="dz-message">Drop your image here or click to upload</div>
         </form>
       </div>
 
       <!-- Convert Button -->
-      <div class="text-center mb-8">
-        <button
-          onclick="convertImage()"
-          class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
-        >
+      <div class="text-center mb-4">
+        <button onclick="convertImage()" class="button button-green convert-button">
           Convert to ICS
         </button>
       </div>
 
       <!-- Download Section -->
-      <div
-        id="downloadSection"
-        class="hidden text-center bg-gray-800 p-6 rounded-lg shadow-md"
-      >
-        <p class="mb-4 text-gray-300">Your ICS file is ready!</p>
+      <div id="downloadSection" class="hidden card text-center">
+        <p class="mb-4">Your ICS file is ready!</p>
         <div class="flex justify-center gap-4">
-          <a
-            id="downloadLink"
-            href="#"
-            download="events.ics"
-            class="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors"
-          >
+          <a id="downloadLink" href="#" download="events.ics" class="button button-blue">
             Download ICS File
           </a>
-          <button
-            onclick="restartProcess()"
-            class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 transition-colors"
-          >
-            Convert Another Image
+          <button onclick="restartProcess()" class="button button-gray">
+            Restart
           </button>
         </div>
       </div>
 
       <!-- Loading Indicator -->
       <div id="loadingIndicator" class="hidden text-center">
-        <div
-          class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300"
-        ></div>
-        <p id="loadingText" class="mt-2 text-gray-300">Processing your image...</p>
+        <div class="spinner"></div>
+        <p id="loadingText" class="helper-text">Processing your image...</p>
       </div>
 
       <!-- Error Message -->
-      <div
-        id="errorMessage"
-        class="hidden bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded relative mt-4"
-      ></div>
+      <div id="errorMessage" class="hidden error-message"></div>
     </div>
 
     <script>
