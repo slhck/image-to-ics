@@ -25,7 +25,6 @@ The whole code was written by Cursor with claude-3.5-sonnet.
 ## TODOs
 
 - [ ] Add capability to upload images from URL
-- [ ] Add multiple image support
 - [ ] Make it possible to just dump some unformatted text and have the LLM format it as an ICS file
 
 ## License

@@ -16,8 +16,9 @@
     <div class="container">
       <h1>Image to ICS Converter</h1>
       <p class="mb-4">
-        Convert an image to an ICS file.
-        The image can contain one or multiple events, and the output will be a single ICS file with all the events ready to be imported into your calendar.
+        Convert one or multiple images to an ICS file. The images can contain
+        events, and the output will be a single ICS file with all the events
+        ready to be imported into your calendar.
       </p>
 
       <!-- API Key Section -->
@@ -32,7 +33,11 @@
             />
             <p class="helper-text">
               Your API key is stored locally and never sent to any server except
-              OpenAI.<br><a href="https://platform.openai.com/api-keys" target="_blank">Get your API key here</a>.
+              OpenAI.<br /><a
+                href="https://platform.openai.com/api-keys"
+                target="_blank"
+                >Get your API key here</a
+              >.
             </p>
           </div>
           <button onclick="setApiKey()" class="button button-blue">
@@ -52,18 +57,30 @@
       <!-- Dropzone -->
       <div class="mb-4">
         <form id="imageUpload" class="dropzone">
-          <div class="dz-message">Drop your image here or click to upload.</div>
-          <span class="helper-text">Supported file types: JPG, PNG, GIF, TIFF, BMP, WebP</span><br>
+          <div class="dz-message">
+            Drop your images here or click to upload multiple files.
+          </div>
+          <span class="helper-text"
+            >Supported file types: JPG, PNG, GIF, TIFF, BMP, WebP</span
+          ><br />
         </form>
       </div>
 
       <!-- Convert Button -->
       <div class="text-center mb-8">
-        <button id="convertButton" onclick="convertImage()" class="button button-green button-large" disabled>
+        <button
+          id="convertButton"
+          onclick="convertImages()"
+          class="button button-green button-large"
+          disabled
+        >
           Convert to ICS
         </button>
         <p class="helper-text">
-          Your image will be processed by OpenAI. <a target="_blank" href="https://openai.com/enterprise-privacy/">Enterprise Privacy policies apply.</a>
+          Your images will be processed by OpenAI.
+          <a target="_blank" href="https://openai.com/enterprise-privacy/"
+            >Enterprise Privacy policies apply.</a
+          >
         </p>
       </div>
 
@@ -71,7 +88,12 @@
       <div id="downloadSection" class="hidden card text-center">
         <p class="mb-4">Your ICS file is ready!</p>
         <div class="flex justify-center gap-4">
-          <a id="downloadLink" href="#" download="events.ics" class="button button-blue">
+          <a
+            id="downloadLink"
+            href="#"
+            download="events.ics"
+            class="button button-blue"
+          >
             Download ICS File
           </a>
           <button onclick="restartProcess()" class="button button-gray">
@@ -83,7 +105,7 @@
       <!-- Loading Indicator -->
       <div id="loadingIndicator" class="hidden text-center">
         <div class="spinner"></div>
-        <p id="loadingText" class="helper-text">Processing your image...</p>
+        <p id="loadingText" class="helper-text">Processing your images...</p>
       </div>
 
       <!-- Error Message -->
@@ -93,7 +115,11 @@
     <!-- Footer -->
     <footer class="footer">
       <p>
-        <a href="https://github.com/slhck/image-to-ics" target="_blank" rel="noopener noreferrer">
+        <a
+          href="https://github.com/slhck/image-to-ics"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           View on GitHub
         </a>
       </p>
@@ -101,40 +127,48 @@
 
     <script>
       // Initialize Dropzone
-      let uploadedFile = null;
+      let uploadedFiles = [];
       const dropzone = new Dropzone("#imageUpload", {
         url: "#",
         autoProcessQueue: false,
-        maxFiles: 1,
+        maxFiles: null, // Allow multiple files
         acceptedFiles: "image/*",
         init: function () {
           this.on("addedfile", function (file) {
-            if (this.files.length > 1) {
-              this.removeFile(this.files[0]);
-            }
-            uploadedFile = file;
+            uploadedFiles.push(file);
+            updateConvertButtonState();
+          });
+          this.on("removedfile", function (file) {
+            uploadedFiles = uploadedFiles.filter((f) => f !== file);
+            updateConvertButtonState();
           });
         },
       });
+
+      function updateConvertButtonState() {
+        const convertButton = document.getElementById("convertButton");
+        const apiKey = localStorage.getItem("openai_api_key");
+        convertButton.disabled = !apiKey || uploadedFiles.length === 0;
+        convertButton.classList.toggle(
+          "button-disabled",
+          convertButton.disabled
+        );
+      }
 
       // API Key Management
       function updateApiKeyDisplay() {
         const apiKey = localStorage.getItem("openai_api_key");
         const entryDiv = document.getElementById("apiKeyEntry");
         const setDiv = document.getElementById("apiKeySet");
-        const convertButton = document.getElementById("convertButton");
 
         if (apiKey) {
           entryDiv.classList.add("hidden");
           setDiv.classList.remove("hidden");
-          convertButton.disabled = false;
-          convertButton.classList.remove("button-disabled");
         } else {
           entryDiv.classList.remove("hidden");
           setDiv.classList.add("hidden");
-          convertButton.disabled = true;
-          convertButton.classList.add("button-disabled");
         }
+        updateConvertButtonState();
       }
 
       function setApiKey() {
@@ -175,11 +209,10 @@
         errorDiv.classList.remove("hidden");
       }
 
-      // Convert Image to ICS
-      async function convertImage() {
-        console.log("Starting conversion process...");
-        if (!uploadedFile) {
-          showError("Please upload an image first.");
+      // Convert Images to ICS
+      async function convertImages() {
+        if (uploadedFiles.length === 0) {
+          showError("Please upload at least one image.");
           return;
         }
 
@@ -189,21 +222,40 @@
           return;
         }
 
-        toggleLoading(true, "Converting image to base64 ...");
-        console.log("Converting image to base64...");
+        toggleLoading(true, "Processing images...");
 
         try {
-          // Convert image to base64
-          const base64Image = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result.split(",")[1]);
-            reader.readAsDataURL(uploadedFile);
-          });
-          console.log("Image converted to base64 successfully");
+          // Convert all images to base64 in parallel
+          const base64Images = await Promise.all(
+            uploadedFiles.map(
+              (file) =>
+                new Promise((resolve) => {
+                  const reader = new FileReader();
+                  reader.onload = (e) => resolve(e.target.result.split(",")[1]);
+                  reader.readAsDataURL(file);
+                })
+            )
+          );
 
-          toggleLoading(true, "Generating ICS file from image ...");
-          // Single API call to generate ICS directly from image
-          const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          // Prepare content array with text and all images
+          const content = [
+            {
+              type: "text",
+              text: `Extract all calendar events from these images and generate a valid ICS file. If no time zone is explicitly visible in the images, assume the time zone is ${
+                Intl.DateTimeFormat().resolvedOptions().timeZone
+              }. If an explicit time zone is given in the input, use the same time zone for the ICS event via the TZID property. Include all required ICS fields and use proper date/time formatting.`,
+            },
+            ...base64Images.map((base64) => ({
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64}`,
+              },
+            })),
+          ];
+
+          toggleLoading(true, "Fetching OpenAI response...");
+
+          // Single API call with all images
           const response = await fetch(
             "https://api.openai.com/v1/chat/completions",
             {
@@ -217,68 +269,62 @@
                 messages: [
                   {
                     role: "system",
-                    content: "You are a calendar expert that generates valid ICS files. Extract events from the provided image and generate a complete and valid ICS file including all required fields like UID, DTSTAMP, etc. Only output the raw ICS content, no additional text. NEVER include any additional text or formatting in your response, not even a comment or backticks."
+                    content:
+                      "You are a calendar expert that generates valid ICS files. Extract events from the provided images and generate a complete and valid ICS file including all required fields like UID, DTSTAMP, TZID, etc. Only output the raw ICS content, no additional text. NEVER include any additional text or formatting in your response, not even a comment or backticks.",
                   },
                   {
                     role: "user",
-                    content: [
-                      {
-                        type: "text",
-                        text: `Extract all calendar events from this image and generate a valid ICS file. If no time zone is explicitly visible in the image, assume the time zone is ${timezone}. Include all required ICS fields and use proper date/time formatting.`,
-                      },
-                      {
-                        type: "image_url",
-                        image_url: {
-                          url: `data:image/jpeg;base64,${base64Image}`,
-                        },
-                      },
-                    ],
+                    content: content,
                   },
                 ],
                 temperature: 0.2,
+                max_tokens: 4096,
               }),
             }
           );
 
           if (!response.ok) {
             const errorData = await response.json();
-            console.error("API error:", errorData);
             throw new Error(
-              errorData.error?.message || "Failed to generate ICS file"
+              errorData.error?.message || "Failed to process images"
             );
           }
 
-          toggleLoading(true, "Validating ICS file ...");
           const data = await response.json();
-          console.log("Raw response:", data.choices[0].message.content);
-          const icsContent = data.choices[0].message.content.trim();
 
-          // Message must start with BEGIN:VCALENDAR and end with END:VCALENDAR!
-          if (!icsContent.startsWith("BEGIN:VCALENDAR") || !icsContent.endsWith("END:VCALENDAR")) {
-            console.error("Invalid ICS content, missing BEGIN or END:", icsContent);
-            throw new Error("Generated ICS content is not valid. Blame the AI or my prompting skills.");
+          console.debug("Raw response:", data);
+
+          console.log("Usage in tokens:", data.usage.total_tokens);
+
+          const icsContent = data.choices[0].message.content
+            .trim()
+            .replace(/^```|```$/g, "");
+
+          // Validate ICS content
+          if (
+            !icsContent.startsWith("BEGIN:VCALENDAR") ||
+            !icsContent.endsWith("END:VCALENDAR")
+          ) {
+            throw new Error("Generated ICS content is not valid");
           }
 
           const blob = new Blob([icsContent], { type: "text/calendar" });
           const downloadUrl = URL.createObjectURL(blob);
-          console.log("Download URL created successfully");
 
           document.getElementById("downloadLink").href = downloadUrl;
           document.getElementById("downloadSection").classList.remove("hidden");
           console.log("Conversion process completed successfully");
         } catch (error) {
           console.error("Conversion error:", error);
-          console.error("Error stack:", error.stack);
           showError(error.message || "An error occurred during conversion");
         } finally {
           toggleLoading(false);
         }
       }
 
-      // Add this function near the other utility functions
       function restartProcess() {
-        // Clear the current file
-        uploadedFile = null;
+        // Clear all files
+        uploadedFiles = [];
         dropzone.removeAllFiles();
 
         // Hide the download section
@@ -286,6 +332,9 @@
 
         // Clear any error messages
         document.getElementById("errorMessage").classList.add("hidden");
+
+        // Update button state
+        updateConvertButtonState();
       }
     </script>
   </body>
