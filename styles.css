@@ -61,6 +61,11 @@ p {
   font-size: 1rem;
 }
 
+/* a's in a button should not be underlined */
+.button a {
+  text-decoration: none;
+}
+
 .button-large {
   font-size: 1.25rem;
   padding: 1rem 2rem;
@@ -163,6 +168,11 @@ p {
 
 .dropzone:hover {
   border-color: #6b7280 !important;
+}
+
+.dropzone .dz-message {
+  color: #d1d5db !important;
+  margin-bottom: 0.5rem !important;
 }
 
 .dropzone .dz-preview {

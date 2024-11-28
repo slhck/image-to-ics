@@ -53,6 +53,7 @@
       <div class="mb-4">
         <form id="imageUpload" class="dropzone">
           <div class="dz-message">Drop your image here or click to upload.</div>
+          <span class="helper-text">Supported file types: JPG, PNG, GIF, TIFF, BMP, WebP</span><br>
         </form>
       </div>
 
@@ -195,99 +196,10 @@
           });
           console.log("Image converted to base64 successfully");
 
-          toggleLoading(true, "Extracting events from image ...");
-          console.log("Making first API call to extract events...");
-          // First API call to extract events
-          const extractionResponse = await fetch(
-            "https://api.openai.com/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "gpt-4o-mini",
-                messages: [
-                  {
-                    role: "user",
-                    content: [
-                      {
-                        type: "text",
-                        text: "Extract all calendar events from this image. For each event, provide the title, start date and time, end date and time (if available), location (if available), and description (if available). Format the response as a structured JSON array with these fields. Make sure dates are in ISO format (YYYY-MM-DDTHH:mm:ss), and contain, if available from the image, a time zone specifier. If no time zone is known, do not add a specifier. All times are in 24-hour format (HH:mm).",
-                      },
-                      {
-                        type: "image_url",
-                        image_url: {
-                          url: `data:image/jpeg;base64,${base64Image}`,
-                        },
-                      },
-                    ],
-                  },
-                ],
-                response_format: {
-                  type: "json_schema",
-                  json_schema: {
-                    name: "EventsSchema",
-                    schema: {
-                      type: "object",
-                      properties: {
-                        events: {
-                          type: "array",
-                          items: {
-                            type: "object",
-                            properties: {
-                              title: { type: "string" },
-                              start: { type: "string" },
-                              end: { type: "string" },
-                              location: { type: "string" },
-                              description: { type: "string" },
-                            },
-                            required: ["title", "start", "end"],
-                            additionalProperties: false,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-                max_tokens: 1500,
-              }),
-            }
-          );
-
-          if (!extractionResponse.ok) {
-            const errorData = await extractionResponse.json();
-            console.error("Extraction API error:", errorData);
-            throw new Error(
-              errorData.error?.message || "Failed to extract events from image"
-            );
-          }
-
-          const extractionData = await extractionResponse.json();
-          console.log(
-            "Raw extraction response:",
-            extractionData.choices[0].message.content
-          );
-
-          let events;
-          try {
-            events = JSON.parse(extractionData.choices[0].message.content);
-            console.log("Parsed events:", events);
-          } catch (e) {
-            console.error("JSON parse error:", e);
-            console.error("Failed to parse content:", extractionData);
-            throw new Error(
-              "Failed to parse events from the image. The response was not in the expected format."
-            );
-          }
-
-          toggleLoading(true, "Generating ICS file ...");
-          console.log("Making second API call to generate ICS...");
-          // fetch the user's timezone from the browser
+          toggleLoading(true, "Generating ICS file from image ...");
+          // Single API call to generate ICS directly from image
           const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-          // Second API call to generate ICS
-          const icsResponse = await fetch(
+          const response = await fetch(
             "https://api.openai.com/v1/chat/completions",
             {
               method: "POST",
@@ -300,14 +212,22 @@
                 messages: [
                   {
                     role: "system",
-                    content:
-                      "You are a calendar expert that generates valid ICS files. Generate a complete and valid ICS content including all required fields like UID, DTSTAMP, etc. Only output the raw ICS content, no additional text. NEVER include any additional text in your response, not even a comment.",
+                    content: "You are a calendar expert that generates valid ICS files. Extract events from the provided image and generate a complete and valid ICS file including all required fields like UID, DTSTAMP, etc. Only output the raw ICS content, no additional text. NEVER include any additional text or formatting in your response, not even a comment or backticks."
                   },
                   {
                     role: "user",
-                    content: `Generate a valid ICS file content for these events: ${JSON.stringify(
-                      events
-                    )}. Make sure to include all required ICS fields and use proper date/time formatting. If no time zone is explicitly given in the ISO datetime strings, assume the time zone is ${timezone}.`,
+                    content: [
+                      {
+                        type: "text",
+                        text: `Extract all calendar events from this image and generate a valid ICS file. If no time zone is explicitly visible in the image, assume the time zone is ${timezone}. Include all required ICS fields and use proper date/time formatting.`,
+                      },
+                      {
+                        type: "image_url",
+                        image_url: {
+                          url: `data:image/jpeg;base64,${base64Image}`,
+                        },
+                      },
+                    ],
                   },
                 ],
                 temperature: 0.2,
@@ -315,28 +235,24 @@
             }
           );
 
-          if (!icsResponse.ok) {
-            const errorData = await icsResponse.json();
-            console.error("ICS generation API error:", errorData);
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error("API error:", errorData);
             throw new Error(
               errorData.error?.message || "Failed to generate ICS file"
             );
           }
 
           toggleLoading(true, "Validating ICS file ...");
-          const icsData = await icsResponse.json();
-          console.log("Raw ICS response:", icsData.choices[0].message.content);
-          const icsContent = icsData.choices[0].message.content;
+          const data = await response.json();
+          console.log("Raw response:", data.choices[0].message.content);
+          const icsContent = data.choices[0].message.content.trim();
 
-          // Validate ICS content
-          if (
-            !icsContent.includes("BEGIN:VCALENDAR") ||
-            !icsContent.includes("END:VCALENDAR")
-          ) {
-            console.error("Invalid ICS content:", icsContent);
-            throw new Error("Generated ICS content is not valid");
+          // Message must start with BEGIN:VCALENDAR and end with END:VCALENDAR!
+          if (!icsContent.startsWith("BEGIN:VCALENDAR") || !icsContent.endsWith("END:VCALENDAR")) {
+            console.error("Invalid ICS content, missing BEGIN or END:", icsContent);
+            throw new Error("Generated ICS content is not valid. Blame the AI or my prompting skills.");
           }
-          console.log("ICS content validation passed");
 
           const blob = new Blob([icsContent], { type: "text/calendar" });
           const downloadUrl = URL.createObjectURL(blob);
