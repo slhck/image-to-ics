@@ -34,7 +34,8 @@ h1 {
 }
 
 a {
-  text-decoration: none;
+  text-decoration: underline;
+  color: #f3f4f6;
 }
 
 /* Common components */
@@ -133,7 +134,7 @@ a {
 .helper-text {
   font-size: 0.875rem;
   color: #9ca3af;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
 
 .success-text {
