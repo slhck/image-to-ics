@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image to ICS Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css"
+      type="text/css"
+    />
+  </head>
+  <body class="bg-gray-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
+      <h1 class="text-3xl font-bold text-center mb-8 text-gray-100">
+        Image to ICS Converter
+      </h1>
+
+      <!-- API Key Section -->
+      <div class="mb-8 bg-gray-800 p-6 rounded-lg shadow-md">
+        <div id="apiKeyEntry" class="flex gap-4">
+          <div>
+            <input
+              type="password"
+              id="apiKey"
+              placeholder="Enter your OpenAI API Key"
+              class="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 text-gray-100 border-gray-600"
+            />
+            <p class="mt-2 text-sm text-gray-400">
+              Your API key is stored locally and never sent to any server except
+              OpenAI.
+          </p>
+          </div>
+          <button
+            onclick="setApiKey()"
+            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+          >
+            Set API Key
+          </button>
+        </div>
+        <div id="apiKeySet" class="hidden">
+          <div class="flex gap-4 items-center">
+            <span class="flex-1 text-green-400">✓ OpenAI API Key is set</span>
+            <button
+              onclick="clearApiKey()"
+              class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+            >
+              Clear API Key
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dropzone -->
+      <div class="mb-8">
+        <form id="imageUpload" class="dropzone bg-gray-800 rounded-lg shadow-md">
+          <div class="dz-message text-gray-300">Drop your image here or click to upload</div>
+        </form>
+      </div>
+
+      <!-- Convert Button -->
+      <div class="text-center mb-8">
+        <button
+          onclick="convertImage()"
+          class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
+        >
+          Convert to ICS
+        </button>
+      </div>
+
+      <!-- Download Section -->
+      <div
+        id="downloadSection"
+        class="hidden text-center bg-gray-800 p-6 rounded-lg shadow-md"
+      >
+        <p class="mb-4 text-gray-300">Your ICS file is ready!</p>
+        <div class="flex justify-center gap-4">
+          <a
+            id="downloadLink"
+            href="#"
+            download="events.ics"
+            class="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors"
+          >
+            Download ICS File
+          </a>
+          <button
+            onclick="restartProcess()"
+            class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 transition-colors"
+          >
+            Convert Another Image
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div id="loadingIndicator" class="hidden text-center">
+        <div
+          class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300"
+        ></div>
+        <p id="loadingText" class="mt-2 text-gray-300">Processing your image...</p>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        id="errorMessage"
+        class="hidden bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded relative mt-4"
+      ></div>
+    </div>
+
+    <script>
+      // Initialize Dropzone
+      let uploadedFile = null;
+      const dropzone = new Dropzone("#imageUpload", {
+        url: "#",
+        autoProcessQueue: false,
+        maxFiles: 1,
+        acceptedFiles: "image/*",
+        init: function () {
+          this.on("addedfile", function (file) {
+            if (this.files.length > 1) {
+              this.removeFile(this.files[0]);
+            }
+            uploadedFile = file;
+          });
+        },
+      });
+
+      // API Key Management
+      function updateApiKeyDisplay() {
+        const apiKey = localStorage.getItem("openai_api_key");
+        const entryDiv = document.getElementById("apiKeyEntry");
+        const setDiv = document.getElementById("apiKeySet");
+
+        if (apiKey) {
+          entryDiv.classList.add("hidden");
+          setDiv.classList.remove("hidden");
+        } else {
+          entryDiv.classList.remove("hidden");
+          setDiv.classList.add("hidden");
+        }
+      }
+
+      function setApiKey() {
+        const apiKey = document.getElementById("apiKey").value;
+        if (apiKey) {
+          localStorage.setItem("openai_api_key", apiKey);
+          document.getElementById("apiKey").value = "";
+          updateApiKeyDisplay();
+        }
+      }
+
+      function clearApiKey() {
+        localStorage.removeItem("openai_api_key");
+        updateApiKeyDisplay();
+      }
+
+      // Initialize API key display on page load
+      document.addEventListener("DOMContentLoaded", updateApiKeyDisplay);
+
+      // Show/Hide Elements
+      function toggleLoading(show, text = null) {
+        document
+          .getElementById("loadingIndicator")
+          .classList.toggle("hidden", !show);
+        if (show) {
+          document.getElementById("downloadSection").classList.add("hidden");
+        }
+        document.getElementById("errorMessage").classList.add("hidden");
+
+        if (text) {
+          document.getElementById("loadingText").textContent = text;
+        }
+      }
+
+      function showError(message) {
+        const errorDiv = document.getElementById("errorMessage");
+        errorDiv.textContent = message;
+        errorDiv.classList.remove("hidden");
+      }
+
+      // Convert Image to ICS
+      async function convertImage() {
+        console.log("Starting conversion process...");
+        if (!uploadedFile) {
+          showError("Please upload an image first.");
+          return;
+        }
+
+        const apiKey = localStorage.getItem("openai_api_key");
+        if (!apiKey) {
+          showError("Please set your OpenAI API key first.");
+          return;
+        }
+
+        toggleLoading(true, "Converting image to base64 ...");
+        console.log("Converting image to base64...");
+
+        try {
+          // Convert image to base64
+          const base64Image = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result.split(",")[1]);
+            reader.readAsDataURL(uploadedFile);
+          });
+          console.log("Image converted to base64 successfully");
+
+          toggleLoading(true, "Extracting events from image ...");
+          console.log("Making first API call to extract events...");
+          // First API call to extract events
+          const extractionResponse = await fetch(
+            "https://api.openai.com/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                  {
+                    role: "user",
+                    content: [
+                      {
+                        type: "text",
+                        text: "Extract all calendar events from this image. For each event, provide the title, start date and time, end date and time (if available), location (if available), and description (if available). Format the response as a structured JSON array with these fields. Make sure dates are in ISO format (YYYY-MM-DDTHH:mm:ss), and contain, if available from the image, a time zone specifier. If no time zone is known, do not add a specifier. All times are in 24-hour format (HH:mm).",
+                      },
+                      {
+                        type: "image_url",
+                        image_url: {
+                          url: `data:image/jpeg;base64,${base64Image}`,
+                        },
+                      },
+                    ],
+                  },
+                ],
+                response_format: {
+                  type: "json_schema",
+                  json_schema: {
+                    name: "EventsSchema",
+                    schema: {
+                      type: "object",
+                      properties: {
+                        events: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              title: { type: "string" },
+                              start: { type: "string" },
+                              end: { type: "string" },
+                              location: { type: "string" },
+                              description: { type: "string" },
+                            },
+                            required: ["title", "start", "end"],
+                            additionalProperties: false,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+                max_tokens: 1500,
+              }),
+            }
+          );
+
+          if (!extractionResponse.ok) {
+            const errorData = await extractionResponse.json();
+            console.error("Extraction API error:", errorData);
+            throw new Error(
+              errorData.error?.message || "Failed to extract events from image"
+            );
+          }
+
+          const extractionData = await extractionResponse.json();
+          console.log(
+            "Raw extraction response:",
+            extractionData.choices[0].message.content
+          );
+
+          let events;
+          try {
+            events = JSON.parse(extractionData.choices[0].message.content);
+            console.log("Parsed events:", events);
+          } catch (e) {
+            console.error("JSON parse error:", e);
+            console.error("Failed to parse content:", extractionData);
+            throw new Error(
+              "Failed to parse events from the image. The response was not in the expected format."
+            );
+          }
+
+          toggleLoading(true, "Generating ICS file ...");
+          console.log("Making second API call to generate ICS...");
+          // fetch the user's timezone from the browser
+          const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          // Second API call to generate ICS
+          const icsResponse = await fetch(
+            "https://api.openai.com/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                  {
+                    role: "system",
+                    content:
+                      "You are a calendar expert that generates valid ICS files. Generate a complete and valid ICS content including all required fields like UID, DTSTAMP, etc. Only output the raw ICS content, no additional text. NEVER include any additional text in your response, not even a comment.",
+                  },
+                  {
+                    role: "user",
+                    content: `Generate a valid ICS file content for these events: ${JSON.stringify(
+                      events
+                    )}. Make sure to include all required ICS fields and use proper date/time formatting. If no time zone is explicitly given in the ISO datetime strings, assume the time zone is ${timezone}.`,
+                  },
+                ],
+                temperature: 0.2,
+              }),
+            }
+          );
+
+          if (!icsResponse.ok) {
+            const errorData = await icsResponse.json();
+            console.error("ICS generation API error:", errorData);
+            throw new Error(
+              errorData.error?.message || "Failed to generate ICS file"
+            );
+          }
+
+          toggleLoading(true, "Validating ICS file ...");
+          const icsData = await icsResponse.json();
+          console.log("Raw ICS response:", icsData.choices[0].message.content);
+          const icsContent = icsData.choices[0].message.content;
+
+          // Validate ICS content
+          if (
+            !icsContent.includes("BEGIN:VCALENDAR") ||
+            !icsContent.includes("END:VCALENDAR")
+          ) {
+            console.error("Invalid ICS content:", icsContent);
+            throw new Error("Generated ICS content is not valid");
+          }
+          console.log("ICS content validation passed");
+
+          const blob = new Blob([icsContent], { type: "text/calendar" });
+          const downloadUrl = URL.createObjectURL(blob);
+          console.log("Download URL created successfully");
+
+          document.getElementById("downloadLink").href = downloadUrl;
+          document.getElementById("downloadSection").classList.remove("hidden");
+          console.log("Conversion process completed successfully");
+        } catch (error) {
+          console.error("Conversion error:", error);
+          console.error("Error stack:", error.stack);
+          showError(error.message || "An error occurred during conversion");
+        } finally {
+          toggleLoading(false);
+        }
+      }
+
+      // Add this function near the other utility functions
+      function restartProcess() {
+        // Clear the current file
+        uploadedFile = null;
+        dropzone.removeAllFiles();
+
+        // Hide the download section
+        document.getElementById("downloadSection").classList.add("hidden");
+
+        // Clear any error messages
+        document.getElementById("errorMessage").classList.add("hidden");
+      }
+    </script>
+  </body>
+</html>
