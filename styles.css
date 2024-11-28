@@ -281,3 +281,13 @@ p {
   color: #3b82f6;
 }
 
+/* Disabled button state */
+.button-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-disabled:hover {
+  background-color: inherit;
+}
+

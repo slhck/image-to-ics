@@ -32,7 +32,7 @@
             />
             <p class="helper-text">
               Your API key is stored locally and never sent to any server except
-              OpenAI.
+              OpenAI.<br><a href="https://platform.openai.com/api-keys" target="_blank">Get your API key here</a>.
             </p>
           </div>
           <button onclick="setApiKey()" class="button button-blue">
@@ -59,7 +59,7 @@
 
       <!-- Convert Button -->
       <div class="text-center mb-8">
-        <button onclick="convertImage()" class="button button-green button-large">
+        <button id="convertButton" onclick="convertImage()" class="button button-green button-large" disabled>
           Convert to ICS
         </button>
         <p class="helper-text">
@@ -122,13 +122,18 @@
         const apiKey = localStorage.getItem("openai_api_key");
         const entryDiv = document.getElementById("apiKeyEntry");
         const setDiv = document.getElementById("apiKeySet");
+        const convertButton = document.getElementById("convertButton");
 
         if (apiKey) {
           entryDiv.classList.add("hidden");
           setDiv.classList.remove("hidden");
+          convertButton.disabled = false;
+          convertButton.classList.remove("button-disabled");
         } else {
           entryDiv.classList.remove("hidden");
           setDiv.classList.add("hidden");
+          convertButton.disabled = true;
+          convertButton.classList.add("button-disabled");
         }
       }
 
