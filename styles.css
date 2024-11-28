@@ -38,6 +38,10 @@ a {
   color: #f3f4f6;
 }
 
+p {
+  margin-bottom: 0.5rem;
+}
+
 /* Common components */
 .card {
   background-color: #1f2937;
@@ -55,6 +59,11 @@ a {
   cursor: pointer;
   transition: background-color 0.2s;
   font-size: 1rem;
+}
+
+.button-large {
+  font-size: 1.25rem;
+  padding: 1rem 2rem;
 }
 
 .button-blue {
@@ -238,7 +247,11 @@ a {
 }
 
 .mb-4 {
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+.mb-8 {
+  margin-bottom: 4rem;
 }
 
 /* Footer */

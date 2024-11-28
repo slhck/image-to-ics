@@ -15,10 +15,14 @@
   <body>
     <div class="container">
       <h1>Image to ICS Converter</h1>
+      <p class="mb-4">
+        Convert an image to an ICS file.
+        The image can contain one or multiple events, and the output will be a single ICS file with all the events ready to be imported into your calendar.
+      </p>
 
       <!-- API Key Section -->
       <div class="card">
-        <div id="apiKeyEntry" class="flex gap-4">
+        <div id="apiKeyEntry" class="flex gap-4 justify-between">
           <div>
             <input
               type="password"
@@ -53,8 +57,8 @@
       </div>
 
       <!-- Convert Button -->
-      <div class="text-center mb-4">
-        <button onclick="convertImage()" class="button button-green convert-button">
+      <div class="text-center mb-8">
+        <button onclick="convertImage()" class="button button-green button-large">
           Convert to ICS
         </button>
         <p class="helper-text">
