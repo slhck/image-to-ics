@@ -58,7 +58,7 @@
       <div class="mb-4">
         <form id="imageUpload" class="dropzone">
           <div class="dz-message">
-            Drop your images here or click to upload multiple files.
+            Drop your images here, click to upload, or paste from clipboard (Ctrl+V/⌘+V).
           </div>
           <span class="helper-text"
             >Supported file types: JPG, PNG, GIF, TIFF, BMP, WebP</span
@@ -143,6 +143,24 @@
             updateConvertButtonState();
           });
         },
+      });
+
+      // Add paste event listener to the document
+      document.addEventListener("paste", function(event) {
+        // prevent the default paste action
+        event.preventDefault();
+        event.stopPropagation();
+
+        const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+
+        for (const item of items) {
+          // check if the pasted content is an image
+          if (item.type.indexOf("image") === 0) {
+            const file = item.getAsFile();
+            // add the file to dropzone
+            dropzone.addFile(file);
+          }
+        }
       });
 
       function updateConvertButtonState() {
