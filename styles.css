@@ -20,7 +20,7 @@ body {
   max-width: 800px;
   width: 100%;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 2rem;
   flex: 1;
 }
 
@@ -63,10 +63,19 @@ h1 {
 a {
   text-decoration: underline;
   color: #f3f4f6;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: #60a5fa;
 }
 
 p {
   margin-bottom: 0.5rem;
+}
+
+textarea {
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
 /* Common components */
@@ -174,7 +183,8 @@ p {
 /* Helper text */
 .helper-text {
   font-size: 0.875rem;
-  color: #9ca3af;
+  /* color: #9ca3af; */
+  color: #f3f4f6;
   margin-top: 1rem;
 }
 
@@ -198,7 +208,8 @@ p {
 }
 
 .dropzone .dz-message {
-  color: #d1d5db !important;
+  /* color: #d1d5db !important; */
+  color: #f3f4f6 !important;
   margin-bottom: 0.5rem !important;
 }
 
@@ -299,14 +310,14 @@ p {
   margin-top: auto;
 }
 
-.footer a {
+/* .footer a {
   color: #60a5fa;
   transition: color 0.2s;
 }
 
 .footer a:hover {
   color: #3b82f6;
-}
+} */
 
 /* Disabled button state */
 .button-disabled {

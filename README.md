@@ -13,6 +13,11 @@ The image can contain one or multiple events, and the output will be a single IC
 - Click the "Convert" button
 - Download the resulting ICS file
 
+1. **Enter your OpenAI API Key** in the field at the top and click "Set API Key".
+2. **Upload your images** by dragging them into the dropzone, clicking to select, or pasting from the clipboard.
+3. *(Optional)* **Provide extra context for event parsing** in the new input field below the image upload. This can include information such as language, time format, or any other relevant details. If provided, this context will be sent to the LLM as: `The user has specified additional context for the events: YOUR_CONTEXT_HERE`.
+4. Click **Convert to ICS** to process your images and download the resulting ICS file.
+
 ## Behind the scenes
 
 The image is processed by an LLM to extract the events. The LLM used is the default OpenAI vision model.
