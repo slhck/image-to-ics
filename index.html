@@ -11,6 +11,7 @@
       href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css"
       type="text/css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/ical.js@1.5.0/build/ical.min.js"></script>
   </head>
   <body>
     <div class="container">
@@ -105,6 +106,13 @@
       <!-- Download Section -->
       <div id="downloadSection" class="hidden card text-center">
         <p class="mb-4">Your ICS file is ready!</p>
+
+        <!-- Preview Section -->
+        <div id="previewSection" class="preview-container">
+          <h3 class="preview-title">Preview Events</h3>
+          <div id="eventsList" class="events-list"></div>
+        </div>
+
         <div class="flex justify-center gap-4">
           <a
             id="downloadLink"
@@ -365,6 +373,9 @@
           const blob = new Blob([icsContent], { type: "text/calendar" });
           const downloadUrl = URL.createObjectURL(blob);
 
+          // Generate preview
+          generateEventsPreview(icsContent);
+
           document.getElementById("downloadLink").href = downloadUrl;
           document.getElementById("downloadSection").classList.remove("hidden");
           console.log("Conversion process completed successfully");
@@ -373,6 +384,131 @@
           showError(error.message || "An error occurred during conversion");
         } finally {
           toggleLoading(false);
+        }
+      }
+
+      // Generate events preview
+      function generateEventsPreview(icsContent) {
+        try {
+          const jCalData = ICAL.parse(icsContent);
+          const comp = new ICAL.Component(jCalData);
+          const vevents = comp.getAllSubcomponents("vevent");
+
+          const eventsList = document.getElementById("eventsList");
+          eventsList.innerHTML = "";
+
+          if (vevents.length === 0) {
+            eventsList.innerHTML = '<div class="event-item"><div class="event-title">No events found</div></div>';
+            return;
+          }
+
+          vevents.forEach(veventComp => {
+            const event = new ICAL.Event(veventComp);
+            const eventHtml = createEventHTML(event);
+            eventsList.appendChild(eventHtml);
+          });
+
+        } catch (error) {
+          console.error("Error parsing ICS for preview:", error);
+          const eventsList = document.getElementById("eventsList");
+          eventsList.innerHTML = '<div class="event-item"><div class="event-title">Error parsing events for preview</div></div>';
+        }
+      }
+
+      function createEventHTML(event) {
+        const eventDiv = document.createElement("div");
+        eventDiv.className = "event-item";
+
+        // Event title
+        const title = event.summary || "Untitled Event";
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "event-title";
+        titleDiv.textContent = title;
+        eventDiv.appendChild(titleDiv);
+
+        // Date and time
+        if (event.startDate && event.endDate) {
+          const datetimeDiv = document.createElement("div");
+          datetimeDiv.className = "event-datetime";
+          datetimeDiv.textContent = formatEventDateTime(event.startDate, event.endDate);
+          eventDiv.appendChild(datetimeDiv);
+        }
+
+        // Description
+        if (event.description) {
+          const descDiv = document.createElement("div");
+          descDiv.className = "event-description";
+          // Limit description length for preview
+          const description = event.description.length > 150
+            ? event.description.substring(0, 150) + "..."
+            : event.description;
+          descDiv.textContent = description;
+          eventDiv.appendChild(descDiv);
+        }
+
+        // Location
+        if (event.location) {
+          const locationDiv = document.createElement("div");
+          locationDiv.className = "event-location";
+          locationDiv.textContent = "📍 " + event.location;
+          eventDiv.appendChild(locationDiv);
+        }
+
+        // Additional metadata
+        const metaDiv = document.createElement("div");
+        metaDiv.className = "event-meta";
+
+        if (event.uid) {
+          const uidSpan = document.createElement("span");
+          uidSpan.className = "event-meta-item";
+          uidSpan.textContent = "ID: " + event.uid.substring(0, 8) + "...";
+          metaDiv.appendChild(uidSpan);
+        }
+
+        if (event.organizer) {
+          const organizerSpan = document.createElement("span");
+          organizerSpan.className = "event-meta-item";
+          organizerSpan.textContent = "Organizer: " + (event.organizer.commonName || event.organizer);
+          metaDiv.appendChild(organizerSpan);
+        }
+
+        if (metaDiv.children.length > 0) {
+          eventDiv.appendChild(metaDiv);
+        }
+
+        return eventDiv;
+      }
+
+      function formatEventDateTime(startDate, endDate) {
+        try {
+          const start = startDate.toJSDate();
+          const end = endDate.toJSDate();
+
+          const options = {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          };
+
+          const startStr = start.toLocaleDateString('en-US', options);
+
+          // If it's the same day, only show time for end
+          const sameDay = start.toDateString() === end.toDateString();
+
+          if (sameDay) {
+            const endTimeOptions = { hour: '2-digit', minute: '2-digit' };
+            const endStr = end.toLocaleTimeString('en-US', endTimeOptions);
+            return `${startStr} - ${endStr}`;
+          } else {
+            const endStr = end.toLocaleDateString('en-US', options);
+            return `${startStr} - ${endStr}`;
+          }
+        } catch (error) {
+          console.error("Error formatting datetime:", error);
+          return "Date/time unavailable";
         }
       }
 
