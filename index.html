@@ -15,44 +15,43 @@
   <body>
     <div class="container">
       <h1>Image to ICS Converter</h1>
-      <!-- two columns -->
-      <div class="flex gap-4 mb-4" style="align-items: flex-start;">
-        <div style="flex: 2 1 0; min-width: 0;">
-          <p class="mb-4">
-            Convert one or multiple images to an ICS file. The images can
-            contain events, and the output will be a single ICS file with all
-            the events ready to be imported into your calendar.
-          </p>
-        </div>
+      <!-- App description -->
+      <div class="mb-6">
+        <p class="app-description">
+          Convert one or multiple images to an ICS file. The images can
+          contain events, and the output will be a single ICS file with all
+          the events ready to be imported into your calendar.
+        </p>
+      </div>
 
-        <!-- API Key Section -->
-        <div class="card" style="flex: 1 1 320px; min-width: 260px; max-width: 360px;">
-          <div id="apiKeyEntry" class="flex gap-4 justify-between">
-            <div style="flex: 1 1 0; min-width: 0;">
+      <!-- API Key Section -->
+      <div class="mb-6">
+        <div class="api-key-section">
+          <div id="apiKeyEntry" class="api-key-entry">
+            <div class="api-key-input-container">
               <input
                 type="password"
                 id="apiKey"
                 placeholder="Enter your OpenAI API Key"
-                class="input"
+                class="input api-key-input"
               />
-              <p class="helper-text">
-                Your API key is stored locally and never sent to any server
-                except OpenAI.<br /><a
-                  href="https://platform.openai.com/api-keys"
-                  target="_blank"
-                  >Get your API key here</a
-                >.
-              </p>
+              <button onclick="setApiKey()" class="button button-blue api-key-btn">
+                Set Key
+              </button>
             </div>
-            <button onclick="setApiKey()" class="button button-blue">
-              Set API Key
-            </button>
+            <p class="api-key-help">
+              Your API key is stored locally and never sent to any server
+              except OpenAI. <a
+                href="https://platform.openai.com/api-keys"
+                target="_blank"
+                >Get your API key here</a>.
+            </p>
           </div>
-          <div id="apiKeySet" class="hidden">
+          <div id="apiKeySet" class="hidden api-key-success">
             <div class="flex justify-between items-center">
               <span class="success-text">✓ OpenAI API Key is set</span>
-              <button onclick="clearApiKey()" class="button button-red">
-                Clear API Key
+              <button onclick="clearApiKey()" class="button button-red api-key-clear">
+                Clear
               </button>
             </div>
           </div>
@@ -74,12 +73,12 @@
 
       <!-- Extra Context Section -->
       <div class="mb-4">
-        <label for="extraContext" class="helper-text"
+        <label for="extraContext" class="extra-context-label"
           >Optional: Extra context for event parsing</label
         >
         <textarea
           id="extraContext"
-          class="input"
+          class="input extra-context-textarea"
           rows="2"
           placeholder="e.g., Assume all events are part of a conference called 'XYZ'"
         ></textarea>
