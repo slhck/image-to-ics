@@ -16,14 +16,7 @@
   <body>
     <div class="container">
       <h1>Image to ICS Converter</h1>
-      <!-- App description -->
-      <div class="mb-6">
-        <p class="app-description">
-          Convert one or multiple images to an ICS file. The images can
-          contain events, and the output will be a single ICS file with all
-          the events ready to be imported into your calendar.
-        </p>
-      </div>
+      <p class="app-description">Convert your images into calendar events. No more typing or manually clicking in your calendar app.</p>
 
       <!-- API Key Section -->
       <div class="mb-6">
@@ -52,55 +45,58 @@
             <div class="flex justify-between items-center">
               <span class="success-text">✓ OpenAI API Key is set</span>
               <button onclick="clearApiKey()" class="button button-red api-key-clear">
-                Clear
+                Clear API Key
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Dropzone -->
-      <div class="mb-4">
-        <form id="imageUpload" class="dropzone">
-          <div class="dz-message">
-            Drop your images here, click to upload, or paste from clipboard
-            (Ctrl+V/⌘+V).
-          </div>
-          <span class="helper-text"
-            >Supported file types: JPG, PNG, GIF, TIFF, BMP, WebP</span
-          ><br />
-        </form>
-      </div>
+      <!-- Upload UI Section -->
+      <div id="uploadUI">
+        <!-- Dropzone -->
+        <div class="mb-4">
+          <form id="imageUpload" class="dropzone">
+            <div class="dz-message">
+              Drop your images here, click to upload, or paste from clipboard
+              (<code>Ctrl+V</code> or <code>⌘+V</code>)
+            </div>
+            <span class="helper-text"
+              >Supported file types: JPG, PNG, GIF, TIFF, BMP, WebP</span
+            ><br />
+          </form>
+        </div>
 
-      <!-- Extra Context Section -->
-      <div class="mb-4">
-        <label for="extraContext" class="extra-context-label"
-          >Optional: Extra context for event parsing</label
-        >
-        <textarea
-          id="extraContext"
-          class="input extra-context-textarea"
-          rows="2"
-          placeholder="e.g., Assume all events are part of a conference called 'XYZ'"
-        ></textarea>
-      </div>
-
-      <!-- Convert Button -->
-      <div class="text-center mb-8">
-        <button
-          id="convertButton"
-          onclick="convertImages()"
-          class="button button-green button-large"
-          disabled
-        >
-          Convert to ICS
-        </button>
-        <p class="helper-text">
-          Your images will be processed by OpenAI.<br>
-          <a target="_blank" href="https://openai.com/enterprise-privacy/"
-            >Enterprise Privacy policies apply.</a
+        <!-- Extra Context Section -->
+        <div class="mb-4">
+          <label for="extraContext" class="extra-context-label"
+            >Optional: Extra context for event parsing</label
           >
-        </p>
+          <textarea
+            id="extraContext"
+            class="input extra-context-textarea"
+            rows="2"
+            placeholder="e.g., Assume all events are part of a conference called 'XYZ'"
+          ></textarea>
+        </div>
+
+        <!-- Convert Button -->
+        <div class="text-center mb-8">
+          <button
+            id="convertButton"
+            onclick="convertImages()"
+            class="button button-green button-large"
+            disabled
+          >
+            Convert to ICS
+          </button>
+          <p class="helper-text">
+            Your images will be processed by OpenAI.<br>
+            <a target="_blank" href="https://openai.com/enterprise-privacy/"
+              >Enterprise Privacy policies apply.</a
+            >
+          </p>
+        </div>
       </div>
 
       <!-- Download Section -->
@@ -377,7 +373,11 @@
           generateEventsPreview(icsContent);
 
           document.getElementById("downloadLink").href = downloadUrl;
+
+          // Hide upload UI and show download section
+          document.getElementById("uploadUI").classList.add("hidden");
           document.getElementById("downloadSection").classList.remove("hidden");
+
           console.log("Conversion process completed successfully");
         } catch (error) {
           console.error("Conversion error:", error);
@@ -517,11 +517,15 @@
         uploadedFiles = [];
         dropzone.removeAllFiles();
 
-        // Hide the download section
+        // Show upload UI and hide download section
+        document.getElementById("uploadUI").classList.remove("hidden");
         document.getElementById("downloadSection").classList.add("hidden");
 
         // Clear any error messages
         document.getElementById("errorMessage").classList.add("hidden");
+
+        // Clear extra context
+        document.getElementById("extraContext").value = "";
 
         // Update button state
         updateConvertButtonState();

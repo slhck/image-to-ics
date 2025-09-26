@@ -157,7 +157,7 @@ textarea {
 .button-gray {
   background: linear-gradient(135deg, #1a1a1a 0%, #141414 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #9ca3af;
+  color: #d1d5db;
 }
 
 .button-gray:hover {
@@ -366,7 +366,7 @@ textarea {
 }
 
 .footer a {
-  color: #9ca3af;
+  color: #d1d5db;
   transition: color 0.3s;
 }
 
@@ -452,6 +452,10 @@ textarea {
   margin-bottom: 0.75rem;
 }
 
+.api-key-input-container input::placeholder {
+  color: #d1d5db !important;
+}
+
 .api-key-input {
   flex: 1;
   min-width: 0;
@@ -474,7 +478,7 @@ textarea {
 
 .api-key-help {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #d1d5db;
   line-height: 1.4;
   margin: 0;
   opacity: 0.8;
@@ -516,7 +520,8 @@ textarea {
 }
 
 .extra-context-textarea::placeholder {
-  color: #9ca3af !important;
+  font-size: 0.875rem;
+  color: #d1d5db !important;
   opacity: 1;
 }
 
@@ -602,7 +607,7 @@ textarea {
 
 .event-location {
   font-size: 0.8125rem;
-  color: #9ca3af;
+  color: #d1d5db;
   font-style: italic;
 }
 
